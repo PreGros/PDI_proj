@@ -1,0 +1,13 @@
+services:
+  spark-app:
+    image: apache/spark-py:latest
+    container_name: pyspark-app
+    user: root  # Run as root
+    ports:
+      - "8080:8080"  # Spark Web UI
+    volumes:
+      - ./pyspark:/opt/spark-apps
+    working_dir: /opt/spark-apps  # Set the working directory in the container
+    command: >
+      /opt/spark/bin/spark-submit
+      spark_app.py
