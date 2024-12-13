@@ -2,6 +2,7 @@ import requests
 import json
 from pyspark.sql import SparkSession, Row
 from datetime import datetime, timedelta, timezone
+from pyspark.sql.functions import col, explode, lit
 
 # api_url = "https://api.golemio.cz/v2/vehiclepositions"
 # api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzA5NSwiaWF0IjoxNzM0MDg4MTE3LCJleHAiOjExNzM0MDg4MTE3LCJpc3MiOiJnb2xlbWlvIiwianRpIjoiYWVlMmM2M2ItOTE4OS00ODkxLTkwZTktZjZjNjk0ODg0N2JhIn0.gI9Ez6DxLPKv3uR0U1GkBREFvcdkIDBs6J7RwBXY5xw"
