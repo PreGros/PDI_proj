@@ -1,0 +1,141 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          14.57476,
+          50.1061
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 316,
+          "delay": {
+            "actual": 25,
+            "last_stop_arrival": -12,
+            "last_stop_departure": 25
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-12T12:47:00+01:00",
+            "departure_time": "2024-12-12T12:47:00+01:00",
+            "id": "U1129Z1P",
+            "sequence": 10
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-12T12:49:00+01:00",
+            "departure_time": "2024-12-12T12:49:00+01:00",
+            "id": "U897Z1P",
+            "sequence": 11
+          },
+          "origin_timestamp": "2024-12-12T12:47:25+01:00",
+          "shape_dist_traveled": "4.585142",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L141",
+            "route_short_name": "141",
+            "route_type": 3,
+            "trip_headsign": "Ve Žlíbku",
+            "trip_id": "141_11_240902",
+            "trip_short_name": null
+          },
+          "origin_route_name": "141",
+          "sequence_id": 1,
+          "start_timestamp": "2024-12-12T12:34:00+01:00",
+          "vehicle_registration_number": 4113,
+          "vehicle_type": {
+            "description_cs": "autobus",
+            "description_en": "bus",
+            "id": 3
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": true,
+          "usb_chargers": false
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.39373,
+          50.12136
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 22,
+          "delay": {
+            "actual": 26,
+            "last_stop_arrival": -12,
+            "last_stop_departure": 26
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-12T12:47:00+01:00",
+            "departure_time": "2024-12-12T12:47:00+01:00",
+            "id": "U506Z1P",
+            "sequence": 5
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-12T12:48:00+01:00",
+            "departure_time": "2024-12-12T12:48:00+01:00",
+            "id": "U623Z1P",
+            "sequence": 6
+          },
+          "origin_timestamp": "2024-12-12T12:47:26+01:00",
+          "shape_dist_traveled": "2.299096",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L107",
+            "route_short_name": "107",
+            "route_type": 3,
+            "trip_headsign": "Suchdol",
+            "trip_id": "107_1515_240930",
+            "trip_short_name": null
+          },
+          "origin_route_name": "107",
+          "sequence_id": 2,
+          "start_timestamp": "2024-12-12T12:41:00+01:00",
+          "vehicle_registration_number": 6937,
+          "vehicle_type": {
+            "description_cs": "autobus",
+            "description_en": "bus",
+            "id": 3
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": false,
+          "usb_chargers": false
+        }
+      },
+      "type": "Feature"
+    }
+  ],
+  "type": "FeatureCollection"
+}

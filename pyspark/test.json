@@ -1,0 +1,66 @@
+{
+    "features": [
+      {
+        "geometry": {
+          "coordinates": [14.57476, 50.1061],
+          "type": "Point"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [42.57476, 4.1061],
+          "type": "Housenka"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [20.5685, 43.2957],
+          "type": "Point"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [51.6769, 12.4292],
+          "type": "Point"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [30.0456, 55.3893],
+          "type": "Polygon"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [60.2321, -45.1046],
+          "type": "Point"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [10.5126, 50.8041],
+          "type": "LineString"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [35.6897, 139.6921],
+          "type": "Point"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [74.3574, 15.2871],
+          "type": "Polygon"
+        }
+      },
+      {
+        "geometry": {
+          "coordinates": [9.9825, 54.2398],
+          "type": "LineString"
+        }
+      }
+    ],
+    "type": "FeatureCollection"
+}
+  

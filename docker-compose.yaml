@@ -11,4 +11,4 @@ services:
     working_dir: /opt/spark-apps 
     command: >
       /opt/spark/bin/spark-submit
-      testPython.py
+      sparkGuide.py
