@@ -10,7 +10,7 @@ api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzA5NSwiaWF0IjoxNzM0MDg4
 
 
 # Kafka configuration
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9093")
+KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9093")
 TOPIC_NAME = 'api_data'
 
 # Create a Kafka producer instance
@@ -44,13 +44,14 @@ def fetch_and_send_data():
 
             # Send data to Kafka topic
             producer.send(TOPIC_NAME, value=data)
-            print(f"Sent data: {data}")
+            print(f"Sent data")
 
         except Exception as e:
             print(f"Error fetching data or sending to Kafka: {e}")
 
         # Sleep for 5 seconds before the next API call
-        time.sleep(50)
+        time.sleep(5)
 
 if __name__ == '__main__':
     fetch_and_send_data()
+A
