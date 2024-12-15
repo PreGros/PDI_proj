@@ -1,0 +1,96 @@
+"ARRAY<STRUCT
+	<geometry: STRUCT<
+		coordinates: ARRAY<DOUBLE>, type: STRING>,
+	properties: STRUCT<last_position:
+		STRUCT<
+			bearing: BIGINT,
+			delay: STRUCT<actual: BIGINT, last_stop_arrival: BIGINT, last_stop_departure: BIGINT>,
+			is_canceled: STRING, !!!!!
+			last_stop: STRUCT<arrival_time: STRING, departure_time: STRING, id: STRING, sequence: BIGINT>,
+			next_stop: STRUCT<arrival_time: STRING, departure_time: STRING, id: STRING, sequence: BIGINT>,
+			origin_timestamp: STRING,
+			shape_dist_traveled: STRING,
+			speed: STRING,  !!!!
+			state_position: STRING,
+			tracking: BOOLEAN>,
+		trip: STRUCT<
+			agency_name: STRUCT<
+				real: STRING,
+				scheduled: STRING>,
+			air_conditioned: BOOLEAN,
+			cis: STRUCT<
+				line_id: STRING,
+				trip_number: STRING>, !!!!!!!!
+			gtfs: STRUCT<
+				route_id: STRING,
+				route_short_name: STRING,
+				route_type: BIGINT,
+				trip_headsign: STRING,
+				trip_id: STRING,
+				trip_short_name: STRING>,
+			origin_route_name: STRING,
+			sequence_id: BIGINT,
+			start_timestamp: STRING,
+			usb_chargers: BOOLEAN,
+			vehicle_registration_number: BIGINT,
+			vehicle_type: STRUCT<
+				description_cs: STRING,
+				description_en: STRING,
+				id: BIGINT>,
+			wheelchair_accessible: BOOLEAN>
+		>,
+		type: STRING>
+	>"
+	
+
+type which is not compatible with
+
+
+
+"ARRAY<STRUCT
+	<geometry: STRUCT<
+		coordinates: ARRAY<DOUBLE>, type: STRING>,
+	properties: STRUCT<last_position:
+		STRUCT<
+			bearing: BIGINT,
+			delay: STRUCT<actual: BIGINT, last_stop_arrival: BIGINT, last_stop_departure: BIGINT>,
+			is_canceled: BOOLEAN, !!!!!
+			last_stop: STRUCT<arrival_time: STRING, departure_time: STRING, id: STRING, sequence: BIGINT>,
+			next_stop: STRUCT<arrival_time: STRING, departure_time: STRING, id: STRING, sequence: BIGINT>,
+			origin_timestamp: STRING,
+			shape_dist_traveled: STRING,
+			speed: BIGINT, !!!!!
+			state_position: STRING,
+			tracking: BOOLEAN>,
+		trip: STRUCT<
+			agency_name: STRUCT<
+				real: STRING,
+				scheduled: STRING>,
+			air_conditioned: BOOLEAN,
+			cis: STRUCT<
+				line_id: STRING,
+				trip_number: BIGINT>, !!!!!!!
+			gtfs: STRUCT<
+				route_id: STRING,
+				route_short_name: STRING,
+				route_type: BIGINT,
+				trip_headsign: STRING,
+				trip_id: STRING,
+				trip_short_name: STRING>,
+			origin_route_name: STRING,
+			sequence_id: BIGINT,
+			start_timestamp: STRING,
+			usb_chargers: BOOLEAN,
+			vehicle_registration_number: BIGINT,
+			vehicle_type: STRUCT<
+				description_cs: STRING,
+				description_en: STRING,
+				id: BIGINT>,
+			wheelchair_accessible: BOOLEAN>
+		>,
+		type: STRING>
+	>"
+			
+			
+			
+at the same column of the first table..;

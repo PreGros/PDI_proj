@@ -1,0 +1,481 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          14.3798,
+          50.07163
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 20,
+          "delay": {
+            "actual": 3,
+            "last_stop_arrival": -44,
+            "last_stop_departure": 3
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:54:00+01:00",
+            "departure_time": "2024-12-15T13:54:00+01:00",
+            "id": "U254Z4P",
+            "sequence": 3
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:55:00+01:00",
+            "departure_time": "2024-12-15T13:55:00+01:00",
+            "id": "U443Z1P",
+            "sequence": 4
+          },
+          "origin_timestamp": "2024-12-15T13:54:03+01:00",
+          "shape_dist_traveled": "2.166628",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L191",
+            "route_short_name": "191",
+            "route_type": 3,
+            "trip_headsign": "Letiště / Airport ✈",
+            "trip_id": "191_8036_241102",
+            "trip_short_name": null
+          },
+          "origin_route_name": "191",
+          "sequence_id": 7,
+          "start_timestamp": "2024-12-15T13:48:00+01:00",
+          "vehicle_registration_number": 3945,
+          "vehicle_type": {
+            "description_cs": "autobus",
+            "description_en": "bus",
+            "id": 3
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": true,
+          "usb_chargers": false
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.45125,
+          50.02705
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 179,
+          "delay": {
+            "actual": 185,
+            "last_stop_arrival": 159,
+            "last_stop_departure": 185
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:51:00+01:00",
+            "departure_time": "2024-12-15T13:51:00+01:00",
+            "id": "U893Z3P",
+            "sequence": 3
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:52:00+01:00",
+            "departure_time": "2024-12-15T13:52:00+01:00",
+            "id": "U656Z1P",
+            "sequence": 4
+          },
+          "origin_timestamp": "2024-12-15T13:54:05+01:00",
+          "shape_dist_traveled": "1.889901",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L189",
+            "route_short_name": "189",
+            "route_type": 3,
+            "trip_headsign": "Sídliště Lhotka",
+            "trip_id": "189_655_240831",
+            "trip_short_name": null
+          },
+          "origin_route_name": "189",
+          "sequence_id": 1,
+          "start_timestamp": "2024-12-15T13:46:00+01:00",
+          "vehicle_registration_number": 6929,
+          "vehicle_type": {
+            "description_cs": "autobus",
+            "description_en": "bus",
+            "id": 3
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": false,
+          "usb_chargers": false
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.46763,
+          50.11662
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 150,
+          "delay": {
+            "actual": 27,
+            "last_stop_arrival": 11,
+            "last_stop_departure": null
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:54:00+01:00",
+            "departure_time": "2024-12-15T13:54:00+01:00",
+            "id": "U54Z1P",
+            "sequence": 6
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:55:00+01:00",
+            "departure_time": "2024-12-15T13:55:00+01:00",
+            "id": "U861Z1P",
+            "sequence": 7
+          },
+          "origin_timestamp": "2024-12-15T13:54:11+01:00",
+          "shape_dist_traveled": "1.578",
+          "speed": null,
+          "state_position": "at_stop",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L3",
+            "route_short_name": "3",
+            "route_type": 0,
+            "trip_headsign": "Nádraží Braník",
+            "trip_id": "3_8984_240928",
+            "trip_short_name": null
+          },
+          "origin_route_name": "3",
+          "sequence_id": 5,
+          "start_timestamp": "2024-12-15T13:49:00+01:00",
+          "vehicle_registration_number": 9159,
+          "vehicle_type": {
+            "description_cs": "tramvaj",
+            "description_en": "tram",
+            "id": 2
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": false,
+          "usb_chargers": false
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.450856,
+          50.123382
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 257,
+          "delay": {
+            "actual": 21,
+            "last_stop_arrival": 5,
+            "last_stop_departure": 15
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:53:15+01:00",
+            "departure_time": "2024-12-15T13:53:35+01:00",
+            "id": "U675Z102P",
+            "sequence": 5
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:56:25+01:00",
+            "departure_time": "2024-12-15T13:56:55+01:00",
+            "id": "U115Z102P",
+            "sequence": 6
+          },
+          "origin_timestamp": "2024-12-15T13:54:13+01:00",
+          "shape_dist_traveled": "5.838",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L993",
+            "route_short_name": "C",
+            "route_type": 1,
+            "trip_headsign": "Háje",
+            "trip_id": "993_664_241116",
+            "trip_short_name": null
+          },
+          "origin_route_name": "993",
+          "sequence_id": 4,
+          "start_timestamp": "2024-12-15T13:45:05+01:00",
+          "vehicle_registration_number": null,
+          "vehicle_type": {
+            "description_cs": "metro",
+            "description_en": "metro",
+            "id": 1
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": null,
+          "usb_chargers": null
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.490409,
+          50.07306
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 127,
+          "delay": {
+            "actual": 0,
+            "last_stop_arrival": 30,
+            "last_stop_departure": null
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:53:45+01:00",
+            "departure_time": "2024-12-15T13:54:35+01:00",
+            "id": "U713Z101P",
+            "sequence": 15
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:57:05+01:00",
+            "departure_time": "2024-12-15T13:57:55+01:00",
+            "id": "U953Z101P",
+            "sequence": 16
+          },
+          "origin_timestamp": "2024-12-15T13:54:13+01:00",
+          "shape_dist_traveled": "14.530734",
+          "speed": null,
+          "state_position": "at_stop",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L991",
+            "route_short_name": "A",
+            "route_type": 1,
+            "trip_headsign": "Depo Hostivař",
+            "trip_id": "991_564_241103",
+            "trip_short_name": null
+          },
+          "origin_route_name": "991",
+          "sequence_id": 10,
+          "start_timestamp": "2024-12-15T13:28:25+01:00",
+          "vehicle_registration_number": null,
+          "vehicle_type": {
+            "description_cs": "metro",
+            "description_en": "metro",
+            "id": 1
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": null,
+          "usb_chargers": null
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.473687,
+          50.038736
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 296,
+          "delay": {
+            "actual": 34,
+            "last_stop_arrival": 35,
+            "last_stop_departure": 40
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:53:00+01:00",
+            "departure_time": "2024-12-15T13:53:20+01:00",
+            "id": "U601Z101P",
+            "sequence": 4
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:54:55+01:00",
+            "departure_time": "2024-12-15T13:55:25+01:00",
+            "id": "U228Z101P",
+            "sequence": 5
+          },
+          "origin_timestamp": "2024-12-15T13:54:13+01:00",
+          "shape_dist_traveled": "4.262",
+          "speed": null,
+          "state_position": "on_track",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L993",
+            "route_short_name": "C",
+            "route_type": 1,
+            "trip_headsign": "Letňany",
+            "trip_id": "993_789_241201",
+            "trip_short_name": null
+          },
+          "origin_route_name": "993",
+          "sequence_id": 10,
+          "start_timestamp": "2024-12-15T13:47:35+01:00",
+          "vehicle_registration_number": null,
+          "vehicle_type": {
+            "description_cs": "metro",
+            "description_en": "metro",
+            "id": 1
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": null,
+          "usb_chargers": null
+        }
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          14.43178,
+          50.07953
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "last_position": {
+          "bearing": 318,
+          "delay": {
+            "actual": -2,
+            "last_stop_arrival": -10,
+            "last_stop_departure": null
+          },
+          "is_canceled": null,
+          "last_stop": {
+            "arrival_time": "2024-12-15T13:53:45+01:00",
+            "departure_time": "2024-12-15T13:54:15+01:00",
+            "id": "U400Z102P",
+            "sequence": 8
+          },
+          "next_stop": {
+            "arrival_time": "2024-12-15T13:55:20+01:00",
+            "departure_time": "2024-12-15T13:55:50+01:00",
+            "id": "U1072Z102P",
+            "sequence": 9
+          },
+          "origin_timestamp": "2024-12-15T13:54:13+01:00",
+          "shape_dist_traveled": "7.162696",
+          "speed": null,
+          "state_position": "at_stop",
+          "tracking": true
+        },
+        "trip": {
+          "agency_name": {
+            "real": "DP PRAHA",
+            "scheduled": "DP PRAHA"
+          },
+          "cis": {
+            "line_id": null,
+            "trip_number": null
+          },
+          "gtfs": {
+            "route_id": "L991",
+            "route_short_name": "A",
+            "route_type": 1,
+            "trip_headsign": "Nemocnice Motol",
+            "trip_id": "991_610_241102",
+            "trip_short_name": null
+          },
+          "origin_route_name": "991",
+          "sequence_id": 15,
+          "start_timestamp": "2024-12-15T13:40:10+01:00",
+          "vehicle_registration_number": null,
+          "vehicle_type": {
+            "description_cs": "metro",
+            "description_en": "metro",
+            "id": 1
+          },
+          "wheelchair_accessible": true,
+          "air_conditioned": null,
+          "usb_chargers": null
+        }
+      },
+      "type": "Feature"
+    }
+  ],
+  "type": "FeatureCollection"
+}

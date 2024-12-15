@@ -1,14 +1,15 @@
-services:
-  spark-app:
-    build: .
-    # image: apache/spark-py:v3.4.0
-    container_name: pyspark-app
-    user: root 
-    ports:
-      - "8080:8080" 
-    volumes:
-      - ./pyspark:/opt/spark-apps
-    working_dir: /opt/spark-apps 
-    command: >
-      /opt/spark/bin/spark-submit
-      sparkGuide.py
+# services:
+#   spark-app:
+#     build: .
+#     # image: apache/spark-py:v3.4.0
+#     container_name: pyspark-app
+#     user: root 
+#     ports:
+#       - "8080:8080" 
+#     volumes:
+#       - ./pyspark:/opt/spark-apps
+#     working_dir: /opt/spark-apps 
+#     command: >
+#       /opt/spark/bin/spark-submit
+#       streamPySpark.py
+
