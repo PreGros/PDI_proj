@@ -1,42 +1,31 @@
-version: '3.8'
-
+version: '3'
 services:
   kafka:
-    image: wurstmeister/kafka:latest
+    image: bitnami/kafka:3.9.0
     environment:
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9093
-      - KAFKA_LISTENER_SECURITY_PROTOCOL=PLAINTEXT
-      - KAFKA_LISTENER_NAME=PLAINTEXT
-      - KAFKA_LISTENERS=PLAINTEXT://kafka:9093
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_LISTENER_INTERNAL=PLAINTEXT://kafka:9093
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
     ports:
+      - "9092:9092"
       - "9093:9093"
-    depends_on:
-      - zookeeper
-    networks:
-      - kafka_network
-
-  zookeeper:
-    image: wurstmeister/zookeeper:latest
-    environment:
-      - ZOOKEEPER_CLIENT_PORT=2181
-    ports:
-      - "2181:2181"
     networks:
       - kafka_network
 
   python-api-producer:
     build:
-      context: .
+      context: . 
       dockerfile: Dockerfile
     volumes:
       - .:/app
     depends_on:
       - kafka
     environment:
-      - KAFKA_BROKER=kafka:9093
-    command: /app/wait-for-it.sh kafka 9093 -- python /app/send_data.py
+      - KAFKA_BROKER=kafka:9092  # Use the internal network address to connect to Kafka
+    command: /app/wait-for-it.sh kafka 9092 -- python /app/send_data.py
     networks:
       - kafka_network
     stdin_open: true
@@ -45,6 +34,10 @@ services:
 networks:
   kafka_network:
     driver: bridge
+
+
+
+
 
 
 # services:
