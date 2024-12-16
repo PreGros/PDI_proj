@@ -21,7 +21,7 @@ producer = KafkaProducer(
 def fetch_and_send_data():
     while True:
         try:
-            last_fetch_time = (datetime.now(timezone.utc) - timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+            last_fetch_time = (datetime.now(timezone.utc) - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
             url = f"{api_url}?updatedSince={last_fetch_time}"
             headers = {
                 'accept': 'application/json',
