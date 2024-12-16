@@ -15,7 +15,8 @@ TOPIC_NAME = 'api_data'
 # Create a Kafka producer instance
 producer = KafkaProducer(
     bootstrap_servers=KAFKA_BROKER,
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    max_request_size=20971520  # 20MB
 )
 
 def fetch_and_send_data():
@@ -32,7 +33,11 @@ def fetch_and_send_data():
             data = response.json()  # Assuming the API returns JSON data
 
             # Send data to Kafka topic
-            producer.send(TOPIC_NAME, value=data)
+            try:
+                producer.send(TOPIC_NAME, value=data).get(timeout=10)
+                print(f"Successfully sent data:")
+            except Exception as e:
+                print(f"Error sending data to Kafka: {e}")
             print(f"Sent data")
 
         except requests.RequestException as e:

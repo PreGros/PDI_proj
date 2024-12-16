@@ -15,6 +15,8 @@ kafka_stream_df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
     .option("subscribe", kafka_topic) \
+    .option("fetch.message.max.bytes", "20971520") \
+    .option("max.partition.fetch.bytes", "20971520") \
     .load()
 
 # The Kafka data is in binary format (key, value), we need to decode it
