@@ -3,8 +3,6 @@ services:
   kafka:
     image: bitnami/kafka:3.9.0
     environment:
-      # - KAFKA_CFG_MAX_MESSAGE_BYTES=20971520  # 20MB
-      # - KAFKA_CFG_MESSAGE_MAX_BYTES=20971520  # 20MB
       - KAFKA_CFG_NODE_ID=0
       - KAFKA_CFG_PROCESS_ROLES=controller,broker
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
@@ -26,7 +24,7 @@ services:
     depends_on:
       - kafka
     environment:
-      - KAFKA_BROKER=kafka:9092  # Use the internal network address to connect to Kafka
+      - KAFKA_BROKER=kafka:9092
     command: /app/wait-for-it.sh kafka 9092 -- python /app/send_data.py
     networks:
       - kafka_network
@@ -37,16 +35,19 @@ services:
     build: .
     image: apache/spark-py:v3.4.0
     container_name: pyspark-app
-    user: root 
+    user: root
     ports:
-      - "8080:8080" 
+      - "8080:8080"
     volumes:
       - ./pyspark:/opt/spark-apps
-    working_dir: /opt/spark-apps 
+    working_dir: /opt/spark-apps
+    environment:
+      - ARG1=${ARG1_VAL}
     command: >
       /opt/spark/bin/spark-submit
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0
       stream_pyspark.py
+      --s ${ARG1_VAL}
     depends_on:
       - python-api-producer
     networks:
@@ -55,113 +56,3 @@ services:
 networks:
   kafka_network:
     driver: bridge
-
-
-
-
-
-
-  
-
-
-
-
-# # FROM apache/spark-py:v3.4.0
-
-# # USER root
-# # RUN pip install requests
-
-# FROM apache/spark-py:v3.4.0
-
-# USER root
-
-# # Install dependencies
-# RUN pip install requests confluent-kafka
-
-
-# import requests
-# from datetime import datetime, timedelta, timezone
-# from pyspark.sql import SparkSession
-# import json
-# from pyspark.sql.functions import col, explode
-# import time
-
-# # API details
-# api_url = "https://api.golemio.cz/v2/vehiclepositions"
-# api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzA5NSwiaWF0IjoxNzM0MDg4MTE3LCJleHAiOjExNzM0MDg4MTE3LCJpc3MiOiJnb2xlbWlvIiwianRpIjoiYWVlMmM2M2ItOTE4OS00ODkxLTkwZTktZjZjNjk0ODg0N2JhIn0.gI9Ez6DxLPKv3uR0U1GkBREFvcdkIDBs6J7RwBXY5xw"
-
-# # Global variables
-# last_fetch_time = None
-# cumulative_df = None
-# i = 0
-
-# def fetchProcessData():
-#     global last_fetch_time, cumulative_df, i
-
-#     # If this is the first call, set the initial timestamp
-#     if last_fetch_time is None:
-#         last_fetch_time = (datetime.now(timezone.utc) - timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-#     # Update the timestamp for the API call
-#     url = f"{api_url}?updatedSince={last_fetch_time}"
-#     headers = {
-#         'accept': 'application/json',
-#         'X-Access-Token': api_key
-#     }
-
-#     response = requests.get(url, headers=headers)
-
-#     if response.status_code == 200:
-#         data = response.json()
-
-#         # Update the last fetch time to current UTC time
-#         last_fetch_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-#         spark = SparkSession.builder \
-#             .appName("MySparkApp") \
-#             .getOrCreate()
-
-#         json_data = json.dumps(data)
-
-#         rdd = spark.sparkContext.parallelize([json_data])
-
-#         new_data_df = spark.read.json(rdd)
-
-#         # Combine new data with cumulative_df
-#         if cumulative_df is None:
-#             cumulative_df = new_data_df
-#         else:
-#             cumulative_df = cumulative_df.union(new_data_df)
-
-#         # Exploding the 'features' array to get each item as a separate row
-#         exploded_df = cumulative_df.select(explode(col("features")).alias("feature"))
-
-#         # Extract 'coordinates' and 'type' from the exploded 'feature' column
-#         final_df = exploded_df.select(
-#             col("feature.properties.last_position.speed").alias("speed"),
-#             col("feature.properties.trip.vehicle_registration_number").alias("vehicle_registration_number")
-#         )
-
-#         # Filter rows where 'speed' is greater than 50
-#         filtered_speed_df = final_df.filter(col("speed") > 50)
-
-#         # Show the resulting DataFrame
-#         # filtered_speed_df.show(60, truncate=False)
-
-#         # Write the filtered DataFrame to a CSV file
-#         i = i + 1
-#         if (i == 5):
-#             filtered_speed_df.write.csv("output/filtered_speed.csv", header=True, mode="overwrite")
-
-#     else:
-#         print(f"Failed to fetch data: {response.status_code} {response.text}")
-
-# def main():
-#     while True:
-#         fetchProcessData()
-
-#         # Sleep for a specific interval (e.g., 60 seconds)
-#         time.sleep(5)
-
-# if __name__ == "__main__":
-#     main()

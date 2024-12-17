@@ -4,6 +4,19 @@ from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType
 
 
+
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--s', required=True, help="Switch argument described in detail in readme.")
+args = parser.parse_args()
+
+# print(f"Received argument: {args.s}")
+
+
+
+
 # Create a Spark session
 spark = SparkSession.builder \
     .appName("KafkaSparkStreaming") \
@@ -128,25 +141,25 @@ schema = StructType([
     StructField("type", StringType(), True)
 ])
 
+if (args.s == "1"):
+    # Parse the incoming Kafka JSON message
+    parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
 
-# Parse the incoming Kafka JSON message
-parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
+    # Flatten the schema and select only the vehicle ID and speed columns
+    flattened_df = parsed_df.selectExpr(
+        "data.properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
+        "data.properties.last_position.speed as speed"  # Speed
+    )
 
-# Flatten the schema and select only the vehicle ID and speed columns
-flattened_df = parsed_df.selectExpr(
-    "data.properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
-    "data.properties.last_position.speed as speed"  # Speed
-)
+    # Filter out rows where 'speed' is null
+    filtered_df = flattened_df.filter((col("speed").isNotNull()) & (col("speed") > 50))
 
-# Filter out rows where 'speed' is null
-filtered_df = flattened_df.filter((col("speed").isNotNull()) & (col("speed") > 50))
+    # Write the filtered data to the console
+    query = filtered_df.writeStream \
+        .outputMode("append") \
+        .format("console") \
+        .option("truncate", "false") \
+        .trigger(processingTime='5 seconds') \
+        .start()
 
-# Write the filtered data to the console
-query = filtered_df.writeStream \
-    .outputMode("append") \
-    .format("console") \
-    .option("truncate", "false") \
-    .trigger(processingTime='5 seconds') \
-    .start()
-
-query.awaitTermination()
+    query.awaitTermination()
