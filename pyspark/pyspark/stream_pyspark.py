@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_timestamp, last
+from pyspark.sql.functions import col, from_json, to_timestamp, last, max, row_number
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType, DoubleType
 from pyspark.sql.window import Window
 from pyspark.sql import functions as F
@@ -23,7 +23,6 @@ args = parser.parse_args()
 # Create a Spark session
 spark = SparkSession.builder \
     .appName("KafkaSparkStreaming") \
-    .config("spark.sql.streaming.checkpointLocation", "checkpoints") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")
@@ -188,22 +187,46 @@ if (args.s == "2"):
 
     df_trams = parsed_stream.filter(col("vehicle_type") == 'tram')
 
-    df_trams = parsed_stream.filter(
-    (col("vehicle_id") == 9162) | 
-    (col("vehicle_id") == 8464) | 
-    (col("vehicle_id") == 9434) | 
-    (col("vehicle_id") == 9387) | 
-    (col("vehicle_id") == 9443) | 
-    (col("vehicle_id") == 9106))
+    # df_trams = parsed_stream.filter(
+    # (col("vehicle_id") == 9162) | 
+    # (col("vehicle_id") == 8464) | 
+    # (col("vehicle_id") == 9434) | 
+    # (col("vehicle_id") == 9387) | 
+    # (col("vehicle_id") == 9443) | 
+    # (col("vehicle_id") == 9106))
 
-
-    # Agregace pro každou tramvaj - udržujeme poslední hlášenou zastávku a čas
     df_last_stop = df_trams.groupBy('vehicle_id').agg(
         last('last_stop_id').alias('last_stop'),
         last('update_time').alias('last_update_time')
     )
 
-    # Výstup do konzole s režimem update pro pravidelnou aktualizaci
     df_last_stop.writeStream.outputMode("update").format("console").start()
+
+    spark.streams.awaitAnyTermination()
+
+
+
+if (args.s == "3"):
+    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+        col("data.properties.last_position.speed").alias("speed"),
+        to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
+    )
+
+    parsed_stream = parsed_stream.filter(col("speed").isNotNull())
+
+    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+            max(col("speed")).alias("max_speed"),
+            max(col("update_time")).alias("update_time")) \
+        .orderBy(col("max_speed").desc()) 
+
+    aggregated_stream.writeStream \
+        .outputMode("complete") \
+        .format("console") \
+        .option("numRows", 5) \
+        .trigger(processingTime='5 seconds') \
+        .start()
 
     spark.streams.awaitAnyTermination()
