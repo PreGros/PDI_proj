@@ -1,7 +1,10 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import expr
-from pyspark.sql.functions import col, from_json
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType
+from pyspark.sql.functions import col, from_json, to_timestamp, last
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType, DoubleType
+from pyspark.sql.window import Window
+from pyspark.sql import functions as F
+from pyspark.sql.streaming.state import GroupState, GroupStateTimeout
+
 
 
 
@@ -12,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--s', required=True, help="Switch argument described in detail in readme.")
 args = parser.parse_args()
 
-# print(f"Received argument: {args.s}")
+
 
 
 
@@ -36,10 +39,6 @@ kafka_stream_df = spark.readStream \
     .option("subscribe", kafka_topic) \
     .option("startingOffsets", "earliest") \
     .load()
-
-from pyspark.sql.types import (
-    StructType, StructField, StringType, DoubleType, IntegerType, BooleanType, ArrayType, LongType
-)
 
 # Define the schema
 schema = StructType([
@@ -141,6 +140,16 @@ schema = StructType([
     StructField("type", StringType(), True)
 ])
 
+
+
+
+
+
+
+
+
+
+
 if (args.s == "1"):
     # Parse the incoming Kafka JSON message
     parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
@@ -163,3 +172,38 @@ if (args.s == "1"):
         .start()
 
     query.awaitTermination()
+
+
+if (args.s == "2"):
+
+    # Extract relevant fields from the Kafka message and parse the JSON
+    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+        col("data.properties.trip.vehicle_type.description_en").alias("vehicle_type"),
+        col("data.properties.last_position.last_stop.id").alias("last_stop_id"),
+        to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
+    )
+
+    df_trams = parsed_stream.filter(col("vehicle_type") == 'tram')
+
+    df_trams = parsed_stream.filter(
+    (col("vehicle_id") == 9162) | 
+    (col("vehicle_id") == 8464) | 
+    (col("vehicle_id") == 9434) | 
+    (col("vehicle_id") == 9387) | 
+    (col("vehicle_id") == 9443) | 
+    (col("vehicle_id") == 9106))
+
+
+    # Agregace pro každou tramvaj - udržujeme poslední hlášenou zastávku a čas
+    df_last_stop = df_trams.groupBy('vehicle_id').agg(
+        last('last_stop_id').alias('last_stop'),
+        last('update_time').alias('last_update_time')
+    )
+
+    # Výstup do konzole s režimem update pro pravidelnou aktualizaci
+    df_last_stop.writeStream.outputMode("update").format("console").start()
+
+    spark.streams.awaitAnyTermination()

@@ -32,7 +32,9 @@ services:
     tty: true
 
   spark-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
     image: apache/spark-py:v3.4.0
     container_name: pyspark-app
     user: root
