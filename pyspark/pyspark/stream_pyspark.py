@@ -360,7 +360,7 @@ if (args.s == "6"):
     #     max(col("dist_traveled")).alias("max_traveled_10_newest_entries")
     # )
 
-    highest_dist_row = ordered_stream.orderBy(col("max_dist_traveled_out_of_10").desc()).limit(1)
+    highest_dist_row = ordered_stream.orderBy(col("dist_traveled").desc()).limit(1)
 
     query = highest_dist_row.writeStream \
         .outputMode("complete") \
