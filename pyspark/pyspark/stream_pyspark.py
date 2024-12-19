@@ -1,9 +1,9 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_timestamp, last, max, row_number
+from pyspark.sql.functions import col, from_json, to_timestamp, last, max, expr, current_timestamp, to_utc_timestamp, unix_timestamp, date_trunc, window, date_format, min as spark_min, row_number
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType, DoubleType
 from pyspark.sql.window import Window
 from pyspark.sql import functions as F
-from pyspark.sql.streaming.state import GroupState, GroupStateTimeout
+from pyspark.sql.streaming.state import GroupState, GroupStateTimeout   
 
 
 
@@ -25,6 +25,8 @@ spark = SparkSession.builder \
     .appName("KafkaSparkStreaming") \
     .getOrCreate()
 
+# spark.conf.set("spark.sql.streaming.statefulOperator.checkCorrectness.enabled", "false")
+
 spark.sparkContext.setLogLevel("ERROR")
 
 # Define the Kafka source
@@ -36,7 +38,7 @@ kafka_stream_df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
     .option("subscribe", kafka_topic) \
-    .option("startingOffsets", "earliest") \
+    .option("startingOffsets", "latest") \
     .load()
 
 # Define the schema
@@ -230,3 +232,140 @@ if (args.s == "3"):
         .start()
 
     spark.streams.awaitAnyTermination()
+
+# if (args.s == "4"):
+#     parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+#     .select(from_json("json_data", schema).alias("data")) \
+#     .select(
+#         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+#         col("data.properties.last_position.speed").alias("speed"),
+#         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
+#     )
+
+#     # Filter out null speeds and apply a time-based filter
+#     filtered_stream = parsed_stream.filter(col("speed").isNotNull())
+#     filtered_stream = filtered_stream.filter(unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 30))
+
+#     # Aggregation: Group by vehicle_id and calculate the max speed within a window of time
+#     aggregated_stream = filtered_stream \
+#         .withWatermark("update_time", "3 minutes")  # Ensure we consider late data within a 30-second window
+
+#     # Aggregation: Group by vehicle_id and get the max speed
+#     aggregated_stream = aggregated_stream \
+#         .groupBy("vehicle_id") \
+#         .agg(F.max("speed").alias("max_speed"),
+#             F.max("update_time").alias("latest_update_time")) \
+#         .orderBy(F.col("max_speed").desc(), F.col("latest_update_time"))
+
+#     # Write the stream to console
+#     aggregated_stream.writeStream \
+#         .outputMode("complete") \
+#         .format("console") \
+#         .option("truncate", False) \
+#         .option("numRows", 5) \
+#         .start()
+
+#     spark.streams.awaitAnyTermination()
+
+
+
+
+
+
+
+if (args.s == "4"):
+    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+        col("data.properties.last_position.speed").alias("speed"),
+        to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
+    )
+
+    filtered_stream = parsed_stream.filter(col("speed").isNotNull())
+
+    # debug_stream = parsed_stream.withColumn(
+    # "time_difference_in_minutes",
+    # (unix_timestamp(current_timestamp()) - unix_timestamp(col("update_time"))) / 60)
+
+    filtered_stream_time = filtered_stream.filter(
+        unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 180)) # 180 = 3min
+
+    # Perform aggregation: Find the maximum speed and latest update_time for each vehicle
+    aggregated_stream = filtered_stream_time.groupBy("vehicle_id") \
+        .agg(
+            max(col("speed")).alias("max_speed"),
+            max(col("update_time")).alias("latest_update_time")  # Get the most recent update_time
+        ) \
+        .orderBy(col("max_speed").desc())  # Sort by max_speed descending
+
+    # Write aggregated results to the console
+    aggregated_stream.writeStream \
+        .outputMode("complete") \
+        .format("console") \
+        .option("truncate", False) \
+        .option("numRows", 5) \
+        .start()
+
+    spark.streams.awaitAnyTermination()
+
+if (args.s == "5"):
+    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.last_position.delay.last_stop_departure").alias("delay"),
+        date_format(to_timestamp(col("data.properties.last_position.origin_timestamp")), "yyyy-MM-dd HH:mm:ss.SSS").alias("update_time")
+    )
+
+    # Filter only rows with positive delays
+    # delayed_vehicles = parsed_stream.filter(col("delay") > 0)
+
+    # delayed_vehicles = delayed_vehicles.withColumn("currentTimestamp", current_timestamp())
+
+    filteredDf = parsed_stream.filter(col("update_time") > current_timestamp() - expr("INTERVAL 3 MINUTES"))
+    
+    # Perform the aggregation to get the maximum delay
+    max_delay_df = filteredDf.agg(max(col("delay")).alias("max_delay"))
+    min_delay_df = filteredDf.agg(spark_min(col("delay")).alias("min_delay"))
+
+    # Write the result to the console as a single row DataFrame
+    max_delay_df.writeStream.outputMode("complete").format("console").option("truncate", False).start()
+    min_delay_df.writeStream.outputMode("complete").format("console").option("truncate", False).start()
+
+    # Await termination of the stream
+    spark.streams.awaitAnyTermination()
+
+if (args.s == "6"):
+    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+        col("data.properties.last_position.shape_dist_traveled").alias("dist_traveled"),
+        to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
+    )       
+
+    # parsed_stream = parsed_stream.withWatermark("update_time", "10 minutes")
+
+    # Aggregating the parsed_stream by vehicle_id
+    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+        max(col("update_time")).alias("update_time"),
+        expr("max_by(dist_traveled, update_time)").alias("dist_traveled")
+    )
+
+    # Order and select the top 10
+    ordered_stream = aggregated_stream.orderBy(col("update_time").desc()).limit(10)
+
+    # # Selecting the max traveled distance
+    # max_trav = ordered_stream.select(
+    #     max(col("dist_traveled")).alias("max_traveled_10_newest_entries")
+    # )
+
+    highest_dist_row = ordered_stream.orderBy(col("max_dist_traveled_out_of_10").desc()).limit(1)
+
+    query = highest_dist_row.writeStream \
+        .outputMode("complete") \
+        .format("console") \
+        .option("truncate", False) \
+        .start()
+
+    query.awaitTermination()
