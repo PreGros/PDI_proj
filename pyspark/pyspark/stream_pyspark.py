@@ -290,32 +290,66 @@ if (args.s == "4"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    filtered_stream = parsed_stream.filter(col("speed").isNotNull())
+    parsed_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
 
-    # debug_stream = parsed_stream.withColumn(
-    # "time_difference_in_minutes",
-    # (unix_timestamp(current_timestamp()) - unix_timestamp(col("update_time"))) / 60)
+    parsed_stream = parsed_stream.filter(col("speed").isNotNull())
 
-    filtered_stream_time = filtered_stream.filter(
-        unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 180)) # 180 = 3min
+    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+        max(col("speed")).alias("max_speed"),
+        max(col("update_time")).alias("update_time")
+    ).orderBy(col("max_speed").desc())
 
-    # Perform aggregation: Find the maximum speed and latest update_time for each vehicle
-    aggregated_stream = filtered_stream_time.groupBy("vehicle_id") \
-        .agg(
-            max(col("speed")).alias("max_speed"),
-            max(col("update_time")).alias("latest_update_time")  # Get the most recent update_time
-        ) \
-        .orderBy(col("max_speed").desc())  # Sort by max_speed descending
+    streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
-    # Write aggregated results to the console
-    aggregated_stream.writeStream \
+    # result_stream = streamP.withColumn(
+    #     "time_difference",
+    #     current_timestamp() - expr(f"INTERVAL 30 SECONDS")
+    # )
+
+    streamP.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("truncate", False) \
-        .option("numRows", 5) \
+        .option("numRows", 500) \
         .start()
 
     spark.streams.awaitAnyTermination()
+
+
+
+
+    # filtered_stream = parsed_stream.filter(col("speed").isNotNull())
+
+    # # debug_stream = parsed_stream.withColumn(
+    # # "time_difference_in_minutes",
+    # # (unix_timestamp(current_timestamp()) - unix_timestamp(col("update_time"))) / 60)
+
+    # filtered_stream_time = filtered_stream.filter(
+    #     unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 180)) # 180 = 3min
+
+    # # Perform aggregation: Find the maximum speed and latest update_time for each vehicle
+    # aggregated_stream = filtered_stream_time.groupBy("vehicle_id") \
+    #     .agg(
+    #         max(col("speed")).alias("max_speed"),
+    #         max(col("update_time")).alias("latest_update_time")  # Get the most recent update_time
+    #     ) \
+    #     .orderBy(col("max_speed").desc())  # Sort by max_speed descending
+
+    # # Write aggregated results to the console
+    # aggregated_stream.writeStream \
+    #     .outputMode("complete") \
+    #     .format("console") \
+    #     .option("truncate", False) \
+    #     .option("numRows", 5) \
+    #     .start()
+
+    # spark.streams.awaitAnyTermination()
+
+
+
+
+
+
 
 if (args.s == "5"):
     parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
@@ -342,6 +376,16 @@ if (args.s == "5"):
 
     # Await termination of the stream
     spark.streams.awaitAnyTermination()
+
+
+
+
+
+
+
+
+
+
 
 if (args.s == "6"):
     parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
