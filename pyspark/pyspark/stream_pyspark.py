@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, to_timestamp, last, max, expr, current_timestamp, to_utc_timestamp, unix_timestamp, date_trunc, window, date_format, min as spark_min, row_number
+from pyspark.sql.functions import col, from_json, to_timestamp, last, max, expr, current_timestamp, to_utc_timestamp, unix_timestamp, date_trunc, window, date_format, min as spark_min, row_number, max as spark_max, lit
 from pyspark.sql.types import StructType, StructField, StringType, FloatType, BooleanType, TimestampType, ArrayType, IntegerType, DoubleType
 from pyspark.sql.window import Window
 from pyspark.sql import functions as F
@@ -161,8 +161,10 @@ if (args.s == "1"):
         "data.properties.last_position.speed as speed"  # Speed
     )
 
+    filtered_stream = flattened_df.filter(col("vehicle_id").isNotNull())
+
     # Filter out rows where 'speed' is null
-    filtered_df = flattened_df.filter((col("speed").isNotNull()) & (col("speed") > 50))
+    filtered_df = filtered_stream.filter((col("speed").isNotNull()) & (col("speed") > 50))
 
     # Write the filtered data to the console
     query = filtered_df.writeStream \
@@ -190,16 +192,18 @@ if (args.s == "2"):
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
-        col("data.properties.trip.vehicle_type.description_en").alias("vehicle_type"),
+        col("data.properties.trip.gtfs.route_type").alias("vehicle_type"),
         col("data.properties.last_position.last_stop.id").alias("last_stop_id"),
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    df_trams = parsed_stream.filter(col("vehicle_type") == 'tram')
+    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+
+    df_trams = filtered_stream.filter(col("vehicle_type") == 0)
 
     latest_tram_data = df_trams.groupBy("vehicle_id").agg(
         last("last_stop_id").alias("last_stop_id"),
-        max("update_time").alias("update_time")
+        spark_max("update_time").alias("update_time")
     )
 
     latest_tram_data.writeStream.outputMode("complete").format("console").option("truncate", False).start()
@@ -225,9 +229,11 @@ if (args.s == "3"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    parsed_stream = parsed_stream.filter(col("speed").isNotNull())
+    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
 
-    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+    filtered_stream = filtered_stream.filter(col("speed").isNotNull())
+
+    aggregated_stream = filtered_stream.groupBy("vehicle_id").agg(
             max(col("speed")).alias("max_speed"),
             max(col("update_time")).alias("update_time")) \
         .orderBy(col("max_speed").desc()) 
@@ -355,30 +361,40 @@ if (args.s == "5"):
     parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
         col("data.properties.last_position.delay.last_stop_departure").alias("delay"),
-        date_format(to_timestamp(col("data.properties.last_position.origin_timestamp")), "yyyy-MM-dd HH:mm:ss.SSS").alias("update_time")
+        to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    # Filter only rows with positive delays
-    # delayed_vehicles = parsed_stream.filter(col("delay") > 0)
+    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
 
-    # delayed_vehicles = delayed_vehicles.withColumn("currentTimestamp", current_timestamp())
+    filtered_stream = filtered_stream.filter(col("delay").isNotNull())
 
-    filteredDf = parsed_stream.filter(col("update_time") > current_timestamp() - expr("INTERVAL 3 MINUTES"))
-    
-    # Perform the aggregation to get the maximum delay
-    max_delay_df = filteredDf.agg(max(col("delay")).alias("max_delay"))
-    min_delay_df = filteredDf.agg(spark_min(col("delay")).alias("min_delay"))
+    aggregated_stream = filtered_stream.groupBy('vehicle_id').agg(
+        expr("max_by(delay, update_time)").alias("delay"),
+        max(col("update_time")).alias("update_time"),
+    )
 
-    # Write the result to the console as a single row DataFrame
-    max_delay_df.writeStream.outputMode("complete").format("console").option("truncate", False).start()
-    min_delay_df.writeStream.outputMode("complete").format("console").option("truncate", False).start()
+    streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
-    # Await termination of the stream
+    highest_delay_row = streamP.orderBy(col("delay").desc()).limit(1)
+    lowest_delay_row = streamP.orderBy(col("delay").asc()).limit(1)
+
+    # Add a column to identify the rows
+    highest_delay_row = highest_delay_row.withColumn("type", lit("max_delay_last_3min"))
+    lowest_delay_row = lowest_delay_row.withColumn("type", lit("min_delay_last_3min"))
+
+    # Combine both rows into a single DataFrame
+    combined_stream = highest_delay_row.union(lowest_delay_row)
+
+    # Write the combined DataFrame to the console
+    combined_stream.writeStream \
+        .outputMode("complete") \
+        .format("console") \
+        .option("truncate", False) \
+        .start()
+
     spark.streams.awaitAnyTermination()
-
-
-
 
 
 
@@ -396,7 +412,9 @@ if (args.s == "6"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )       
 
-    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+
+    aggregated_stream = filtered_stream.groupBy("vehicle_id").agg(
         max(col("update_time")).alias("update_time"),
         expr("max_by(dist_traveled, update_time)").alias("dist_traveled")
     )
