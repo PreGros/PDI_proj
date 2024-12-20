@@ -1,0 +1,67 @@
+{
+  "geometry": {
+    "coordinates": [
+      14.459271,
+      50.041791
+    ],
+    "type": "Point"
+  },
+  "properties": {
+    "last_position": {
+      "bearing": 102,
+      "delay": {
+        "actual": -12,
+        "last_stop_arrival": 5,
+        "last_stop_departure": null
+      },
+      "is_canceled": null,
+      "last_stop": {
+        "arrival_time": "2024-12-20T14:05:30+01:00",
+        "departure_time": "2024-12-20T14:06:00+01:00",
+        "id": "U228Z102P",
+        "sequence": 16
+      },
+      "next_stop": {
+        "arrival_time": "2024-12-20T14:07:40+01:00",
+        "departure_time": "2024-12-20T14:08:00+01:00",
+        "id": "U601Z102P",
+        "sequence": 17
+      },
+      "origin_timestamp": "2024-12-20T14:05:23+01:00",
+      "shape_dist_traveled": "17.126538",
+      "speed": 123,
+      "state_position": "at_stop",
+      "tracking": true
+    },
+    "trip": {
+      "agency_name": {
+        "real": "DP PRAHA",
+        "scheduled": "DP PRAHA"
+      },
+      "cis": {
+        "line_id": null,
+        "trip_number": null
+      },
+      "gtfs": {
+        "route_id": "L993",
+        "route_short_name": "C",
+        "route_type": 1,
+        "trip_headsign": "Háje",
+        "trip_id": "993_624_230722",
+        "trip_short_name": null
+      },
+      "origin_route_name": "993",
+      "sequence_id": 42,
+      "start_timestamp": "2024-12-20T13:37:35+01:00",
+      "vehicle_registration_number": 11411,
+      "vehicle_type": {
+        "description_cs": "metro",
+        "description_en": "metro",
+        "id": 1
+      },
+      "wheelchair_accessible": true,
+      "air_conditioned": null,
+      "usb_chargers": null
+    }
+  }
+}

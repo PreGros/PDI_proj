@@ -29,18 +29,6 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("ERROR")
 
-# Define the Kafka source
-kafka_bootstrap_servers = "kafka:9092"
-kafka_topic = "api_data"  # Replace with the actual topic name
-
-# Read data from Kafka
-kafka_stream_df = spark.readStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
-    .option("subscribe", kafka_topic) \
-    .option("startingOffsets", "latest") \
-    .load()
-
 # Define the schema
 schema = StructType([
     StructField("geometry", StructType([
@@ -141,24 +129,42 @@ schema = StructType([
     StructField("type", StringType(), True)
 ])
 
+# # Define the path to your test JSON data directory
+# json_data_path = "testData"
+
+# # Read data from the JSON directory using the custom schema
+# feature_stream_df = spark.readStream \
+#     .format("json") \
+#     .schema(schema) \
+#     .load(json_data_path)
 
 
+# Define the Kafka source
+kafka_bootstrap_servers = "kafka:9092"
+kafka_topic = "api_data"  # Replace with the actual topic name
 
+# Read data from Kafka
+kafka_stream_df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+    .option("subscribe", kafka_topic) \
+    .option("startingOffsets", "latest") \
+    .load()
 
+# Parse the incoming Kafka JSON message
+parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
 
-
-
+feature_stream_df = parsed_df.select(
+    col("data.properties").alias("properties")  # Alias properties to remove "data."
+)
 
 
 
 if (args.s == "1"):
-    # Parse the incoming Kafka JSON message
-    parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
-
     # Flatten the schema and select only the vehicle ID and speed columns
-    flattened_df = parsed_df.selectExpr(
-        "data.properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
-        "data.properties.last_position.speed as speed"  # Speed
+    flattened_df = feature_stream_df.selectExpr(
+        "properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
+        "properties.last_position.speed as speed"  # Speed
     )
 
     filtered_stream = flattened_df.filter(col("vehicle_id").isNotNull())
