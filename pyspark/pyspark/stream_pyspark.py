@@ -175,6 +175,14 @@ if (args.s == "1"):
     query.awaitTermination()
 
 
+
+
+
+
+
+
+
+
 if (args.s == "2"):
 
     # Extract relevant fields from the Kafka message and parse the JSON
@@ -189,22 +197,22 @@ if (args.s == "2"):
 
     df_trams = parsed_stream.filter(col("vehicle_type") == 'tram')
 
-    # df_trams = parsed_stream.filter(
-    # (col("vehicle_id") == 9162) | 
-    # (col("vehicle_id") == 8464) | 
-    # (col("vehicle_id") == 9434) | 
-    # (col("vehicle_id") == 9387) | 
-    # (col("vehicle_id") == 9443) | 
-    # (col("vehicle_id") == 9106))
-
-    df_last_stop = df_trams.groupBy('vehicle_id').agg(
-        last('last_stop_id').alias('last_stop'),
-        last('update_time').alias('last_update_time')
+    latest_tram_data = df_trams.groupBy("vehicle_id").agg(
+        last("last_stop_id").alias("last_stop_id"),
+        max("update_time").alias("update_time")
     )
 
-    df_last_stop.writeStream.outputMode("update").format("console").start()
+    latest_tram_data.writeStream.outputMode("complete").format("console").option("truncate", False).start()
 
     spark.streams.awaitAnyTermination()
+
+
+
+
+
+
+
+
 
 
 
@@ -344,21 +352,12 @@ if (args.s == "6"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )       
 
-    # parsed_stream = parsed_stream.withWatermark("update_time", "10 minutes")
-
-    # Aggregating the parsed_stream by vehicle_id
     aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
         max(col("update_time")).alias("update_time"),
         expr("max_by(dist_traveled, update_time)").alias("dist_traveled")
     )
 
-    # Order and select the top 10
     ordered_stream = aggregated_stream.orderBy(col("update_time").desc()).limit(10)
-
-    # # Selecting the max traveled distance
-    # max_trav = ordered_stream.select(
-    #     max(col("dist_traveled")).alias("max_traveled_10_newest_entries")
-    # )
 
     highest_dist_row = ordered_stream.orderBy(col("dist_traveled").desc()).limit(1)
 
