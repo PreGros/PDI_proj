@@ -19,7 +19,11 @@ if [[ -f "$croppedOutputPath" ]]; then
   rm "$croppedOutputPath"
 fi
 
-echo "Running Docker to start spark-app and get output. This will take 60 seconds."
+echo "Running Docker to start spark-app and get output. This will take 60 seconds. (60+ with container build & pull)"
+
+docker-compose build
+
+docker-compose pull
 
 # Change env to set testing mode
 echo -e "ARG1_VAL=$1\nMODE_VAL=local" > .env
@@ -27,9 +31,13 @@ echo -e "ARG1_VAL=$1\nMODE_VAL=local" > .env
 sleep 1
 
 # Run the Docker command and save output to a file
+docker-compose up python-api-producer -d
+
+sleep 15
+
 docker-compose up spark-app -d
 
-sleep 60
+sleep 30
 
 docker-compose logs spark-app > ${outputPath}
 

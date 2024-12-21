@@ -150,13 +150,26 @@ if (args.s == "1"):
     # Filter out rows where 'speed' is null
     filteredStreamDF = parsedStreamDF.filter((col("speed").isNotNull()) & (col("speed") > 50) & (col("vehicle_id").isNotNull()))
 
-    # Write the filtered data to the console
-    filteredStreamDF.writeStream \
-        .outputMode("append") \
-        .format("console") \
-        .option("truncate", "false") \
-        .trigger(processingTime='5 seconds') \
-        .start()
+    if (args.m == "local"):
+        aggregatedDF = filteredStreamDF.groupBy("vehicle_id").agg(
+            last("speed").alias("speed")
+            ).orderBy(col("vehicle_id").desc())
+
+        # Write the filtered data to the console
+        aggregatedDF.writeStream \
+            .outputMode("complete") \
+            .format("console") \
+            .option("truncate", "false") \
+            .trigger(processingTime='5 seconds') \
+            .start()
+    else:
+        # Write the filtered data to the console
+        filteredStreamDF.writeStream \
+            .outputMode("append") \
+            .format("console") \
+            .option("truncate", "false") \
+            .trigger(processingTime='5 seconds') \
+            .start()
 
     spark.streams.awaitAnyTermination()
 
