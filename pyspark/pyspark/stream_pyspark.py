@@ -307,18 +307,23 @@ if (args.s == "4"):
         max(col("update_time")).alias("update_time")
     ).orderBy(col("max_speed").desc())
 
-    streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
+    # For testing purposes
+    if (args.m == "local"):
+        timeThen = to_timestamp(lit("2024-12-20T14:04:20+01:00"))
+        streamP = aggregated_stream.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
+    else:
+        streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
-    # result_stream = streamP.withColumn(
-    #     "time_difference",
-    #     current_timestamp() - expr(f"INTERVAL 30 SECONDS")
+    # result_stream = parsed_stream.withColumn(
+    #     "time_then",
+    #     timeThen
     # )
 
     streamP.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("truncate", False) \
-        .option("numRows", 500) \
+        .option("numRows", 5) \
         .start()
 
     spark.streams.awaitAnyTermination()
@@ -377,7 +382,13 @@ if (args.s == "5"):
         max(col("update_time")).alias("update_time"),
     )
 
-    streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
+    # streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
+
+    if (args.m == "local"):
+        timeThen = to_timestamp(lit("2024-12-20T14:04:20+01:00"))
+        streamP = aggregated_stream.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
+    else:
+        streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
     highest_delay_row = streamP.orderBy(col("delay").desc()).limit(1)
     lowest_delay_row = streamP.orderBy(col("delay").asc()).limit(1)

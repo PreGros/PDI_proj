@@ -38,9 +38,16 @@ docker-compose down
 
 if [[ "$1" == "1" || "$1" == "2" ]]; then
   awk '/^pyspark-app  \| -------------------------------------------/,/^only showing top 20 rows/' ${outputPath} > ${croppedOutputPath}
-elif [[ "$1" == "3" ]]; then
+elif [[ "$1" == "3" || "$1" == "4" ]]; then
   awk '/^pyspark-app  \| -------------------------------------------/,/^only showing top 5 rows/' ${outputPath} > ${croppedOutputPath}
+elif [[ "$1" == "5" ]]; then
+  awk '/^pyspark-app  \| -------------------------------------------/,/^+----------+-----+-------------------+-------------------+/' ${outputPath} > ${croppedOutputPath}
+elif [[ "$1" == "6" ]]; then
+  awk '/^pyspark-app  \| -------------------------------------------/,/^+----------+-------------------+-------------+/' ${outputPath} > ${croppedOutputPath}
 fi
+
+
+
 
 
 # Compare two files using diff
