@@ -1,0 +1,14 @@
+pyspark-app  | -------------------------------------------
+pyspark-app  | Batch: 0
+pyspark-app  | -------------------------------------------
+pyspark-app  | +----------+---------+-------------------+
+pyspark-app  | |vehicle_id|max_speed|        update_time|
+pyspark-app  | +----------+---------+-------------------+
+pyspark-app  | |      7613|       91|2024-12-20 13:04:00|
+pyspark-app  | |      9840|       91|2024-12-20 13:04:04|
+pyspark-app  | |      1419|       89|2024-12-20 13:03:59|
+pyspark-app  | |      8402|       85|2024-12-20 13:04:09|
+pyspark-app  | |      8344|       83|2024-12-20 13:04:10|
+pyspark-app  | +----------+---------+-------------------+
+pyspark-app  | only showing top 5 rows
+pyspark-app  | 

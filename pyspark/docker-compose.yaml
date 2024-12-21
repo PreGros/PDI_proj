@@ -24,7 +24,8 @@ services:
       - kafka
     environment:
       - KAFKA_BROKER=kafka:9092
-    command: /app/wait-for-it.sh kafka 9092 -- python /app/send_data.py
+      - MODE=${MODE_VAL}
+    command: /app/wait-for-it.sh kafka 9092 -- python /app/send_data.py --m ${MODE_VAL}
     networks:
       - kafka_network
     stdin_open: true
@@ -41,11 +42,13 @@ services:
     working_dir: /opt/spark-apps
     environment:
       - ARG1=${ARG1_VAL}
+      - MODE=${MODE_VAL}
     command: >
       /opt/spark/bin/spark-submit
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0
       stream_pyspark.py
       --s ${ARG1_VAL}
+      --m ${MODE_VAL}
     depends_on:
       - python-api-producer
     networks:

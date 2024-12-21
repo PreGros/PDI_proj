@@ -1,0 +1,29 @@
+pyspark-app  | -------------------------------------------
+pyspark-app  | Batch: 0
+pyspark-app  | -------------------------------------------
+pyspark-app  | +----------+------------+-------------------+
+pyspark-app  | |vehicle_id|last_stop_id|update_time        |
+pyspark-app  | +----------+------------+-------------------+
+pyspark-app  | |9446      |U775Z2P     |2024-12-20 13:04:00|
+pyspark-app  | |9415      |U567Z2P     |2024-12-20 13:04:17|
+pyspark-app  | |9399      |U142Z1P     |2024-12-20 13:03:55|
+pyspark-app  | |9388      |U70Z2P      |2024-12-20 13:04:16|
+pyspark-app  | |9380      |U567Z1P     |2024-12-20 13:04:05|
+pyspark-app  | |9357      |U837Z1P     |2024-12-20 13:03:47|
+pyspark-app  | |9356      |U689Z1P     |2024-12-20 13:04:09|
+pyspark-app  | |9343      |U680Z1P     |2024-12-20 13:03:48|
+pyspark-app  | |9341      |U901Z1P     |2024-12-20 13:04:04|
+pyspark-app  | |9305      |U354Z1P     |2024-12-20 13:03:58|
+pyspark-app  | |9275      |U203Z1P     |2024-12-20 13:04:08|
+pyspark-app  | |9207      |U100Z3P     |2024-12-20 13:04:09|
+pyspark-app  | |9202      |U717Z5P     |2024-12-20 13:03:49|
+pyspark-app  | |9162      |U78Z1P      |2024-12-20 13:04:13|
+pyspark-app  | |9146      |U878Z1P     |2024-12-20 13:04:13|
+pyspark-app  | |9142      |U387Z1P     |2024-12-20 13:04:16|
+pyspark-app  | |9125      |U583Z1P     |2024-12-20 13:04:07|
+pyspark-app  | |9103      |U463Z1P     |2024-12-20 13:04:09|
+pyspark-app  | |9092      |U447Z1P     |2024-12-20 13:04:11|
+pyspark-app  | |9087      |U614Z1P     |2024-12-20 13:04:12|
+pyspark-app  | +----------+------------+-------------------+
+pyspark-app  | only showing top 20 rows
+pyspark-app  | 

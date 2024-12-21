@@ -5,6 +5,12 @@ import time
 import os
 from datetime import datetime, timezone, timedelta
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--m', required=True, help="Mode fetch data from API or use local for testing purpose.")
+args = parser.parse_args()
+
 # API configuration
 api_url = "https://api.golemio.cz/v2/vehiclepositions"
 api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzA5NSwiaWF0IjoxNzM0MDg4MTE3LCJleHAiOjExNzM0MDg4MTE3LCJpc3MiOiJnb2xlbWlvIiwianRpIjoiYWVlMmM2M2ItOTE4OS00ODkxLTkwZTktZjZjNjk0ODg0N2JhIn0.gI9Ez6DxLPKv3uR0U1GkBREFvcdkIDBs6J7RwBXY5xw"
@@ -89,5 +95,37 @@ def fetch_and_send_data():
         # Sleep for 45 seconds before the next API call
         time.sleep(5)
 
+
+def load_and_send_data():   
+
+    jsonFile = open('testData/testData.json')
+
+    data = json.load(jsonFile)
+
+    if "features" in data:
+        features = data["features"]
+        for feature in features:
+            try:
+                producer.send(TOPIC_NAME, value=feature).get(timeout=10)
+
+                print("Sending feature!")
+
+                # # Write JSON data to a file
+                # if (index % 500 == 0):
+                #     file_path = f'getData/data{index}.json'
+                #     with open(file_path, 'w') as json_file:
+                #         json.dump(feature, json_file, indent=4)  # indent=4 formats the JSON for readability
+                # index = index + 1
+
+                # print(f"Successfully sent feature!")
+            except Exception as e:
+                print(f"Error sending feature to Kafka: {e}")
+    else:
+        print("No 'features' field in the response data.")
+
+
 if __name__ == '__main__':
-    fetch_and_send_data()
+    if (args.m == "api"):
+        fetch_and_send_data()
+    if (args.m == "local"):
+        load_and_send_data()

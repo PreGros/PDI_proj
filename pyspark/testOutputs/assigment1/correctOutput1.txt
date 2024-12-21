@@ -1,0 +1,29 @@
+pyspark-app  | -------------------------------------------
+pyspark-app  | Batch: 0
+pyspark-app  | -------------------------------------------
+pyspark-app  | +----------+-----+
+pyspark-app  | |vehicle_id|speed|
+pyspark-app  | +----------+-----+
+pyspark-app  | |8117      |51   |
+pyspark-app  | |1248      |67   |
+pyspark-app  | |8193      |72   |
+pyspark-app  | |8265      |82   |
+pyspark-app  | |12436     |62   |
+pyspark-app  | |7613      |91   |
+pyspark-app  | |7643      |67   |
+pyspark-app  | |8620      |71   |
+pyspark-app  | |1623      |52   |
+pyspark-app  | |9170      |57   |
+pyspark-app  | |8133      |67   |
+pyspark-app  | |12555     |69   |
+pyspark-app  | |7034      |54   |
+pyspark-app  | |1417      |53   |
+pyspark-app  | |1419      |89   |
+pyspark-app  | |11698     |51   |
+pyspark-app  | |10642     |51   |
+pyspark-app  | |7877      |67   |
+pyspark-app  | |8566      |56   |
+pyspark-app  | |1644      |53   |
+pyspark-app  | +----------+-----+
+pyspark-app  | only showing top 20 rows
+pyspark-app  | 
