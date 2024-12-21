@@ -17,7 +17,7 @@ services:
   python-api-producer:
     build:
       context: . 
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.producer
     volumes:
       - .:/app
     depends_on:

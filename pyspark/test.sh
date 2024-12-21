@@ -3,7 +3,25 @@
 # Check if input argument is in correct range
 if [[ "$1" -lt 1 || "$1" -gt 6 ]]; then
   echo "Error: $1 is not between 1 and 6"
-  exit 1  # Exit with an error code
+  exit 1  
+fi
+
+if [ -z "$2" ]; then
+  waitAfterProducer=15
+elif [[ "$2" =~ ^[0-9]+$ ]]; then
+  waitAfterProducer=$2
+else
+  echo "Second argument must be a number!"
+  exit 1
+fi
+
+if [ -z "$2" ]; then
+  waitAfterSpark=45
+elif [[ "$2" =~ ^[0-9]+$ ]]; then
+  waitAfterSpark=$2
+else
+  echo "Third argument must be a number!"
+  exit 1
 fi
 
 outputsPath="testOutputs/assigment$1"
@@ -33,11 +51,11 @@ sleep 1
 # Run the Docker command and save output to a file
 docker-compose up python-api-producer -d
 
-sleep 15
+sleep $waitAfterProducer
 
 docker-compose up spark-app -d
 
-sleep 30
+sleep $waitAfterSpark
 
 docker-compose logs spark-app > ${outputPath}
 
