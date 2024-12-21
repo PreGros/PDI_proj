@@ -4,11 +4,6 @@ from pyspark.sql.types import StructType, StructField, StringType, FloatType, Bo
 from pyspark.sql.window import Window
 from pyspark.sql import functions as F
 from pyspark.sql.streaming.state import GroupState, GroupStateTimeout   
-
-
-
-
-
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -16,21 +11,14 @@ parser.add_argument('--s', required=True, help="Switch argument described in det
 parser.add_argument('--m', required=True, help="Mode fetch data from API or use local for testing purpose.")
 args = parser.parse_args()
 
-
-
-
-
-
 # Create a Spark session
 spark = SparkSession.builder \
     .appName("KafkaSparkStreaming") \
     .getOrCreate()
 
-# spark.conf.set("spark.sql.streaming.statefulOperator.checkCorrectness.enabled", "false")
-
 spark.sparkContext.setLogLevel("ERROR")
 
-# Define the schema
+# Feature schema
 schema = StructType([
     StructField("geometry", StructType([
         StructField("type", StringType(), True),
@@ -131,54 +119,72 @@ schema = StructType([
 ])
 
 # Define the Kafka source
-kafka_bootstrap_servers = "kafka:9092"
-kafka_topic = "api_data"  # Replace with the actual topic name
+kafkaBootstrapServers = "kafka:9092"
+kafkaTopic = "api_data"
 
+# For testing purpose, script takes earliest messages from kafka
 if (args.m == "api"):
     startingOffset = "latest"
 else:
+
     startingOffset = "earliest"
 
 # Read data from Kafka
-kafka_stream_df = spark.readStream \
+kafkaStreamDF = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
-    .option("subscribe", kafka_topic) \
+    .option("kafka.bootstrap.servers", kafkaBootstrapServers) \
+    .option("subscribe", kafkaTopic) \
     .option("startingOffsets", startingOffset) \
     .load()
 
-# Parse the incoming Kafka JSON message
-parsed_df = kafka_stream_df.select(from_json(col("value").cast("string"), schema).alias("data"))
-
-feature_stream_df = parsed_df.select(
-    col("data.properties").alias("properties")  # Alias properties to remove "data."
-)
-
-
 
 if (args.s == "1"):
-    # Flatten the schema and select only the vehicle ID and speed columns
-    flattened_df = feature_stream_df.selectExpr(
-        "properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
-        "properties.last_position.speed as speed"  # Speed
-    )
-
-    filtered_stream = flattened_df.filter(col("vehicle_id").isNotNull())
+    # Extracting important columns from stream to df
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
+    .select(from_json("json_data", schema).alias("data")) \
+    .select(
+        col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
+        col("data.properties.last_position.speed").alias("speed")
+    )    
 
     # Filter out rows where 'speed' is null
-    filtered_df = filtered_stream.filter((col("speed").isNotNull()) & (col("speed") > 50))
+    filteredStreamDF = parsedStreamDF.filter((col("speed").isNotNull()) & (col("speed") > 50) & (col("vehicle_id").isNotNull()))
 
     # Write the filtered data to the console
-    query = filtered_df.writeStream \
+    filteredStreamDF.writeStream \
         .outputMode("append") \
         .format("console") \
         .option("truncate", "false") \
         .trigger(processingTime='5 seconds') \
         .start()
 
-    query.awaitTermination()
+    spark.streams.awaitAnyTermination()
 
+# if (args.s == "1"):
+#     # Parse the incoming Kafka JSON message
+#     parsedStreamDF = kafkaStreamDF.select(from_json(col("value").cast("string"), schema).alias("data"))
 
+#     featureStreamDF = parsedStreamDF.select(
+#         col("data.properties").alias("properties")  # Alias properties to remove "data."
+# )
+
+#     # Flatten the schema and select only the vehicle ID and speed columns
+#     flattenedDF = featureStreamDF.selectExpr(
+#         "properties.trip.vehicle_registration_number as vehicle_id",  # Vehicle ID
+#         "properties.last_position.speed as speed"  # Speed
+#     )
+
+#     filteredStreamDF = flattenedDF.filter((col("speed").isNotNull()) & (col("speed") > 50) & (col("vehicle_id").isNotNull()))
+
+#     # Write the filtered data to the console
+#     query = filteredStreamDF.writeStream \
+#         .outputMode("append") \
+#         .format("console") \
+#         .option("truncate", "false") \
+#         .trigger(processingTime='5 seconds') \
+#         .start()
+
+#     query.awaitTermination()
 
 
 
@@ -190,7 +196,7 @@ if (args.s == "1"):
 if (args.s == "2"):
 
     # Extract relevant fields from the Kafka message and parse the JSON
-    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
@@ -199,16 +205,19 @@ if (args.s == "2"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+    # Vehicles with vehicle type 0 are trams
+    filteredStreamDF = parsedStreamDF.filter((col("vehicle_id").isNotNull()) & (col("vehicle_type") == 0))
 
-    df_trams = filtered_stream.filter(col("vehicle_type") == 0)
-
-    latest_tram_data = df_trams.groupBy("vehicle_id").agg(
+    latestTram = filteredStreamDF.groupBy("vehicle_id").agg(
         last("last_stop_id").alias("last_stop_id"),
         spark_max("update_time").alias("update_time")
     ).orderBy(col("vehicle_id").desc())
 
-    latest_tram_data.writeStream.outputMode("complete").format("console").option("truncate", False).start()
+    latestTram.writeStream \
+    .outputMode("complete") \
+    .format("console") \
+    .option("truncate", False) \
+    .start()
 
     spark.streams.awaitAnyTermination()
 
@@ -223,7 +232,7 @@ if (args.s == "2"):
 
 
 if (args.s == "3"):
-    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
@@ -231,16 +240,14 @@ if (args.s == "3"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+    filteredStreamDF = parsedStreamDF.filter((col("vehicle_id").isNotNull()) & (col("speed").isNotNull()))
 
-    filtered_stream = filtered_stream.filter(col("speed").isNotNull())
-
-    aggregated_stream = filtered_stream.groupBy("vehicle_id").agg(
+    aggregatedStreamDF = filteredStreamDF.groupBy("vehicle_id").agg(
             max(col("speed")).alias("max_speed"),
             max(col("update_time")).alias("update_time")) \
         .orderBy(col("max_speed").desc()) 
 
-    aggregated_stream.writeStream \
+    aggregatedStreamDF.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("numRows", 5) \
@@ -249,40 +256,6 @@ if (args.s == "3"):
 
     spark.streams.awaitAnyTermination()
 
-# if (args.s == "4"):
-#     parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
-#     .select(from_json("json_data", schema).alias("data")) \
-#     .select(
-#         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
-#         col("data.properties.last_position.speed").alias("speed"),
-#         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
-#     )
-
-#     # Filter out null speeds and apply a time-based filter
-#     filtered_stream = parsed_stream.filter(col("speed").isNotNull())
-#     filtered_stream = filtered_stream.filter(unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 30))
-
-#     # Aggregation: Group by vehicle_id and calculate the max speed within a window of time
-#     aggregated_stream = filtered_stream \
-#         .withWatermark("update_time", "3 minutes")  # Ensure we consider late data within a 30-second window
-
-#     # Aggregation: Group by vehicle_id and get the max speed
-#     aggregated_stream = aggregated_stream \
-#         .groupBy("vehicle_id") \
-#         .agg(F.max("speed").alias("max_speed"),
-#             F.max("update_time").alias("latest_update_time")) \
-#         .orderBy(F.col("max_speed").desc(), F.col("latest_update_time"))
-
-#     # Write the stream to console
-#     aggregated_stream.writeStream \
-#         .outputMode("complete") \
-#         .format("console") \
-#         .option("truncate", False) \
-#         .option("numRows", 5) \
-#         .start()
-
-#     spark.streams.awaitAnyTermination()
-
 
 
 
@@ -290,7 +263,7 @@ if (args.s == "3"):
 
 
 if (args.s == "4"):
-    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
@@ -298,28 +271,21 @@ if (args.s == "4"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    parsed_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+    filteredStreamDF = parsedStreamDF.filter((col("vehicle_id").isNotNull()) & (col("speed").isNotNull()))
 
-    parsed_stream = parsed_stream.filter(col("speed").isNotNull())
-
-    aggregated_stream = parsed_stream.groupBy("vehicle_id").agg(
+    aggregatedStreamDF = filteredStreamDF.groupBy("vehicle_id").agg(
         max(col("speed")).alias("max_speed"),
         max(col("update_time")).alias("update_time")
     ).orderBy(col("max_speed").desc())
 
-    # For testing purposes
+    # For testing purposes there is fixed time
     if (args.m == "local"):
         timeThen = to_timestamp(lit("2024-12-20T14:04:20+01:00"))
-        streamP = aggregated_stream.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
+        latestDataDF = aggregatedStreamDF.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
     else:
-        streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
+        latestDataDF = aggregatedStreamDF.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
-    # result_stream = parsed_stream.withColumn(
-    #     "time_then",
-    #     timeThen
-    # )
-
-    streamP.writeStream \
+    latestDataDF.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("truncate", False) \
@@ -331,41 +297,10 @@ if (args.s == "4"):
 
 
 
-    # filtered_stream = parsed_stream.filter(col("speed").isNotNull())
-
-    # # debug_stream = parsed_stream.withColumn(
-    # # "time_difference_in_minutes",
-    # # (unix_timestamp(current_timestamp()) - unix_timestamp(col("update_time"))) / 60)
-
-    # filtered_stream_time = filtered_stream.filter(
-    #     unix_timestamp(col("update_time")) > (unix_timestamp(current_timestamp()) - 180)) # 180 = 3min
-
-    # # Perform aggregation: Find the maximum speed and latest update_time for each vehicle
-    # aggregated_stream = filtered_stream_time.groupBy("vehicle_id") \
-    #     .agg(
-    #         max(col("speed")).alias("max_speed"),
-    #         max(col("update_time")).alias("latest_update_time")  # Get the most recent update_time
-    #     ) \
-    #     .orderBy(col("max_speed").desc())  # Sort by max_speed descending
-
-    # # Write aggregated results to the console
-    # aggregated_stream.writeStream \
-    #     .outputMode("complete") \
-    #     .format("console") \
-    #     .option("truncate", False) \
-    #     .option("numRows", 5) \
-    #     .start()
-
-    # spark.streams.awaitAnyTermination()
-
-
-
-
-
 
 
 if (args.s == "5"):
-    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
@@ -373,35 +308,32 @@ if (args.s == "5"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )
 
-    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+    filteredStreamDF = parsedStreamDF.filter((col("vehicle_id").isNotNull()) & (col("delay").isNotNull()))
 
-    filtered_stream = filtered_stream.filter(col("delay").isNotNull())
-
-    aggregated_stream = filtered_stream.groupBy('vehicle_id').agg(
+    aggregatedStreamDF = filteredStreamDF.groupBy('vehicle_id').agg(
         expr("max_by(delay, update_time)").alias("delay"),
         max(col("update_time")).alias("update_time"),
     )
 
-    # streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
-
+    # For testing purposes there is fixed time
     if (args.m == "local"):
-        timeThen = to_timestamp(lit("2024-12-20T14:04:20+01:00"))
-        streamP = aggregated_stream.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
+        timeThen = to_timestamp(lit("2024-12-20T14:04:20+01:00")) # Fixed time allign with testing data
+        latestDataDF = aggregatedStreamDF.filter(col("update_time") > (timeThen - expr(f"INTERVAL 3 MINUTES")))
     else:
-        streamP = aggregated_stream.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
+        latestDataDF = aggregatedStreamDF.filter(col("update_time") > (current_timestamp() - expr(f"INTERVAL 3 MINUTES")))
 
-    highest_delay_row = streamP.orderBy(col("delay").desc()).limit(1)
-    lowest_delay_row = streamP.orderBy(col("delay").asc()).limit(1)
+    highestDelayDF = latestDataDF.orderBy(col("delay").desc()).limit(1)
+    lowestDelayDF = latestDataDF.orderBy(col("delay").asc()).limit(1)
 
     # Add a column to identify the rows
-    highest_delay_row = highest_delay_row.withColumn("type", lit("max_delay_last_3min"))
-    lowest_delay_row = lowest_delay_row.withColumn("type", lit("min_delay_last_3min"))
+    highestDelayDF = highestDelayDF.withColumn("type", lit("max_delay_last_3min"))
+    lowestDelayDF = lowestDelayDF.withColumn("type", lit("min_delay_last_3min"))
 
     # Combine both rows into a single DataFrame
-    combined_stream = highest_delay_row.union(lowest_delay_row)
+    highestLowestDelayDF = highestDelayDF.union(lowestDelayDF)
 
     # Write the combined DataFrame to the console
-    combined_stream.writeStream \
+    highestLowestDelayDF.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("truncate", False) \
@@ -417,7 +349,7 @@ if (args.s == "5"):
 
 
 if (args.s == "6"):
-    parsed_stream = kafka_stream_df.selectExpr("CAST(value AS STRING) as json_data") \
+    parsedStreamDF = kafkaStreamDF.selectExpr("CAST(value AS STRING) as json_data") \
     .select(from_json("json_data", schema).alias("data")) \
     .select(
         col("data.properties.trip.vehicle_registration_number").alias("vehicle_id"),
@@ -425,18 +357,18 @@ if (args.s == "6"):
         to_timestamp(col("data.properties.last_position.origin_timestamp")).alias("update_time")
     )       
 
-    filtered_stream = parsed_stream.filter(col("vehicle_id").isNotNull())
+    filteredStreamDF = parsedStreamDF.filter(col("vehicle_id").isNotNull())
 
-    aggregated_stream = filtered_stream.groupBy("vehicle_id").agg(
+    aggregatedStreamDF = filteredStreamDF.groupBy("vehicle_id").agg(
         max(col("update_time")).alias("update_time"),
         expr("max_by(dist_traveled, update_time)").alias("dist_traveled")
     )
 
-    ordered_stream = aggregated_stream.orderBy(col("update_time").desc()).limit(10)
+    latestTenDF = aggregatedStreamDF.orderBy(col("update_time").desc()).limit(10)
 
-    highest_dist_row = ordered_stream.orderBy(col("dist_traveled").desc()).limit(1)
+    highestDistTravelledDF = latestTenDF.orderBy(col("dist_traveled").desc()).limit(1)
 
-    query = highest_dist_row.writeStream \
+    query = highestDistTravelledDF.writeStream \
         .outputMode("complete") \
         .format("console") \
         .option("truncate", False) \
