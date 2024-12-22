@@ -45,7 +45,7 @@ Test po porovnání vypíše, zda určený úkol prošel či ne. Při správném
 
 ## Limity testu
 
-Test nedostává informace od kontejneru, pouze předpokládá, že po defaultně nastaveném časovém okamžiku zpracuje testovací data. Pokud by test neprošel a v logu testu ve složce *testOutputs/assigment#/output#.txt* by byl posledním řádkem
+Test nedostává informace od kontejneru, pouze předpokládá, že po defaultně nastaveném časovém čase zpracuje testovací data. Pokud by test neprošel a v logu testu ve složce *testOutputs/assigment#/output#.txt* by byl posledním řádkem
 ```bash
 pyspark-app  | 24/12/22 01:05:19 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, a408c3aec669, 44167, None)
 ```

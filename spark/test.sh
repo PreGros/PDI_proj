@@ -37,7 +37,7 @@ if [[ -f "$croppedOutputPath" ]]; then
   rm "$croppedOutputPath"
 fi
 
-echo "Running Docker to start spark-app and get output. This will take 60 seconds. (60+ with container build & pull)"
+echo "Running Docker to start spark-app and get output. This will take 60 seconds."
 
 # Change env to set testing mode
 echo -e "ARG1_VAL=$1\nMODE_VAL=local" > .env
