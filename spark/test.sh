@@ -39,16 +39,11 @@ fi
 
 echo "Running Docker to start spark-app and get output. This will take 60 seconds. (60+ with container build & pull)"
 
-docker-compose build
-
-docker-compose pull
-
 # Change env to set testing mode
 echo -e "ARG1_VAL=$1\nMODE_VAL=local" > .env
 
 sleep 1
 
-# Run the Docker command and save output to a file
 docker-compose up python-api-producer -d
 
 sleep $waitAfterProducer
@@ -59,7 +54,6 @@ sleep $waitAfterSpark
 
 docker-compose logs spark-app > ${outputPath}
 
-# Bring down the Docker containers
 docker-compose down
 
 if [[ "$1" == "1" || "$1" == "2" ]]; then
@@ -72,22 +66,12 @@ elif [[ "$1" == "6" ]]; then
   awk '/^pyspark-app  \| -------------------------------------------/,/^+----------+-------------------+-------------+/' ${outputPath} > ${croppedOutputPath}
 fi
 
-
-
-
-
-# Compare two files using diff
 diff ${croppedOutputPath} ${correctOutput} > /dev/null
 
-# Check the result of diff
 if [ $? -eq 0 ]; then
-    # No difference, print "Success" in green and bold
     echo -e "\e[1;32mAssigment $1 OK\e[0m"
 else
-    # There is a difference, print "Failure" in red and bold
     echo -e "\e[1;31mAssigment $1 FAIL\e[0m"
 fi
-
-
 
 echo -e "ARG1_VAL=$1\nMODE_VAL=api" > .env
