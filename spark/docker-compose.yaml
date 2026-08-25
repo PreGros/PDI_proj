@@ -1,0 +1,60 @@
+services:
+  kafka:
+    image: bitnami/kafka:3.9.0
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    networks:
+      - kafka_network
+
+  python-api-producer:
+    build:
+      context: . 
+      dockerfile: Dockerfile.producer
+    volumes:
+      - .:/app
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - MODE=${MODE_VAL}
+    command: /app/wait-for-it.sh kafka 9092 -- python /app/send_data.py --m ${MODE_VAL}
+    networks:
+      - kafka_network
+    stdin_open: true
+    tty: true
+
+  spark-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: pyspark-app
+    user: root
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./pyspark:/opt/spark-apps
+    working_dir: /opt/spark-apps
+    environment:
+      - ARG1=${ARG1_VAL}
+      - MODE=${MODE_VAL}
+    command: >
+      /opt/spark/bin/spark-submit
+      stream_pyspark.py
+      --s ${ARG1_VAL}
+      --m ${MODE_VAL}
+    depends_on:
+      - python-api-producer
+    networks:
+      - kafka_network
+
+networks:
+  kafka_network:
+    driver: bridge
